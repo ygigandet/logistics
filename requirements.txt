@@ -1,7 +1,16 @@
+certifi==2025.11.12
+charset-normalizer==3.4.4
 duckdb==1.4.3
+idna==3.11
+kagglehub==0.3.13
 numpy==2.3.5
+packaging==25.0
 pandas==2.3.3
 python-dateutil==2.9.0.post0
 pytz==2025.2
+PyYAML==6.0.3
+requests==2.32.5
 six==1.17.0
+tqdm==4.67.1
 tzdata==2025.2
+urllib3==2.6.1
