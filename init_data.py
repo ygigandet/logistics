@@ -1,3 +1,5 @@
+# pylint: disable=missing-module-docstring
+
 import kagglehub
 import pandas as pd
 
