@@ -5,7 +5,7 @@
 import pandas as pd
 
 # Load dataset
-df = pd.read_csv("data/raw/amazon_delivery.csv")
+df = pd.read_csv("../data/raw/amazon_delivery.csv")
 
 
 # Quick overview of the data
