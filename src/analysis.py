@@ -1,5 +1,6 @@
 """
 Compute and update straight-line distances for Amazon delivery dataset.
+Modify incorrect latitude and longitude points.
 """
 
 import duckdb
@@ -50,3 +51,54 @@ for row in rows:
 # pylint: disable=fixme
 # TODO: Validate distances for last-mile delivery.
 # Typical threshold: 30 km (30,000 meters)
+
+# Check for data consistency for distance
+
+df = con.execute(
+    """
+    SELECT Order_ID, Store_Latitude, Store_Longitude, Drop_Latitude, Drop_Longitude, distance
+    FROM amazon_delivery
+"""
+).df()
+
+# For the assumptions, the last-mile delivery should not exceed 50km.
+
+incorrect_distance = df[df["distance"] > 50000]
+print(f"{incorrect_distance["Order_ID"].count()} seem out of range for the distance")
+
+print(incorrect_distance)
+
+# Cleaning latitude and longitude
+
+rows = con.execute(
+    """
+    SELECT Order_ID, Store_Latitude, Store_Longitude, Drop_Latitude, Drop_Longitude
+    FROM amazon_delivery
+    WHERE distance > 50000
+"""
+).fetchall()
+
+# Update the latitude and longitude
+for row in rows:
+    Order_ID, Store_Latitude, Store_Longitude, Drop_Latitude, Drop_Longitude = row
+    # Check if latitudes are way over limit
+    if abs(Store_Latitude - Drop_Latitude) > 1:
+        New_Drop_Latitude = Drop_Latitude * -1
+        # Update DuckDB directly
+        con.execute(
+            "UPDATE amazon_delivery SET Drop_Latitude = ? WHERE Order_ID = ?",
+            (New_Drop_Latitude, Order_ID),
+        )
+    if abs(Store_Longitude - Drop_Longitude) > 1:
+        New_Drop_Longitude = Drop_Longitude * -1
+        # Update DuckDB directly
+        con.execute(
+            "UPDATE amazon_delivery SET Drop_Longitude = ? WHERE Order_ID = ?",
+            (New_Drop_Longitude, Order_ID),
+        )
+    # Compute geodesic distance
+    d = compute_distance(Store_Latitude, Store_Longitude, Drop_Latitude, Drop_Longitude)
+    # Update DuckDB directly
+    con.execute(
+        "UPDATE amazon_delivery SET distance = ? WHERE Order_ID = ?", (d, Order_ID)
+    )
