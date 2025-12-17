@@ -4,6 +4,7 @@ Modify incorrect latitude and longitude points.
 """
 
 import duckdb
+from datetime import datetime, date, time
 from geopy.distance import geodesic
 
 
@@ -82,19 +83,19 @@ rows = con.execute(
 for row in rows:
     Order_ID, Store_Latitude, Store_Longitude, Drop_Latitude, Drop_Longitude = row
     # Check if latitudes are way over limit
-    if abs(Store_Latitude - Drop_Latitude) > 1:
-        New_Drop_Latitude = Drop_Latitude * -1
+    if abs(Store_Latitude - Drop_Latitude) > 2:
+        Drop_Latitude = -Drop_Latitude
         # Update DuckDB directly
         con.execute(
             "UPDATE amazon_delivery SET Drop_Latitude = ? WHERE Order_ID = ?",
-            (New_Drop_Latitude, Order_ID),
+            (Drop_Latitude, Order_ID),
         )
-    if abs(Store_Longitude - Drop_Longitude) > 1:
-        New_Drop_Longitude = Drop_Longitude * -1
+    if abs(Store_Longitude - Drop_Longitude) > 2:
+        Drop_Longitude = -Drop_Longitude
         # Update DuckDB directly
         con.execute(
             "UPDATE amazon_delivery SET Drop_Longitude = ? WHERE Order_ID = ?",
-            (New_Drop_Longitude, Order_ID),
+            (Drop_Longitude, Order_ID),
         )
     # Compute geodesic distance
     d = compute_distance(Store_Latitude, Store_Longitude, Drop_Latitude, Drop_Longitude)
